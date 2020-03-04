@@ -1,34 +1,44 @@
 import numpy as np
 import random
 
+
 class Quoridor() :
-    no_of_players = 2
-    first_player = random.choice(["Player 1", "Player 2"])
-    moving_player = first_player
+    no_of_players = 2 #in a later version of this let's make this dynamic (4 players possible)
+    #easily done by taking self.no_of_players = number of arguments, with 2 and 4 players as only valid inputs
+    first_player = random.choice(["Player 1", "Player 2"]) #randomly choose who goes first
+    moving_player = first_player #'moving' player from now on refers to he/she whose move it is
     if first_player[-1] == "1" :
         waiting_player = f"{first_player[:-1]}2"
     elif first_player[-1] == "2" :
-        waiting_player = f"{first_player[:-1]}1"
-    players_adjacent = False
-    no_of_moves = 0
-    rules = "Rules:"
-    fences = dict([["Player 1", 10],["Player 2", 10]])
-    start_positions = dict([["Player 1", [0,4]],["Player 2", [8,4]]])
-    current_positions = start_positions
+        waiting_player = f"{first_player[:-1]}1" 
+    #'waiting' player is he/she who is waiting for opponents move to be made
+    no_of_moves = 0 #initialise with 0 moves made (as of yet)
+    rules = "Rules:" #here let's have an explanation of the rules to call on
+    fences_dict = dict([["Player 1", 10],["Player 2", 10]]) #a dictionary of respective remaining fences
+    start_positions = dict([["Player 1", [0,4]],["Player 2", [8,4]]]) 
+    players_adjacent = False #are the players adjacent (ie to the immediate L, R, U, D of each other)
+    current_positions = start_positions #current_positions to be changed throughout, obviously
+    #board is a 9x9 array of possible moves, 'U' representing Up etc, 1 meaning possible... etc
+    #note: a level of redundancy arises here, as being able to move up from [x,y]
+    #ought to be the same as being able to move down from [x,y+1]
+    #as this is a small game I doubt it's worth worrying about, but consider more memory efficient options
     board = np.array([[dict([['U', 1], ['D', 1], ['L', 1],['R',1]]) for x in range(9)] for y in range(9)])
     for counter in range(9) :
+        #imitates idea of encasing for the board (cannot leave the board!)
         board[8][counter]['U'] = 0
         board[0][counter]['D'] = 0
         board[counter][0]['L'] = 0
         board[counter][8]['R'] = 0
 
     def __init__(self, player1, player2) :
-        self.names = dict([["Player 1", player1],["Player 2", player2]])
+        '''initialised with two parameters: name of player 1 and name of player 2. The game begins immediately'''
+        self.names_dict = dict([["Player 1", player1],["Player 2", player2]])
         print(self.rules)
         print(f"Player 1: {player1}")
         print(f"Player 2: {player2}")
         print(f"The first move is to be made by: {self.first_player}")
         self.game_in_progress = True
+        #this last attribute is probably pointless, but we shall see
 
     def swap_axis(self, direction) :
         '''given a direction on the horizontal axis this will return vertical directions and viceversa'''
@@ -36,6 +46,17 @@ class Quoridor() :
             return(['L', 'R'])
         elif direction in ['L', 'R'] :
             return(['U', 'D'])
+
+    def opposite_direction(self, direction) :
+        '''given a direction, return the direction a 180 degree turn from this'''
+        if direction == 'L' :
+            return('R')
+        elif direction == 'R' :
+            return('L')
+        elif direction == 'U' :
+            return('D')
+        elif direction == 'D' :
+            return('U')
 
     def position(self, player='moving') :
         '''returns the current position of the selected player: the moving player is the default'''
@@ -54,9 +75,10 @@ class Quoridor() :
         self.moving_player = temp2
         self.waiting_player = temp1
 
-    def check_if_adjacent(self, details=False) :
+    def check_if_adjacent(self, return_details=False) :
         '''checks if players are adjacent each other (ie directly above, below, to the left or to the right)
-        if details == True then will return which direction the waiting_player is wrt the moving_player'''
+        if return_details == True then will return which direction the waiting_player is wrt the moving_player
+        note: this updates the attribute self.players_adjacent with the appropriate value'''
         x,y = self.position()
         x_wait, y_wait = self.position('waiting')
         if y != y_wait and x != x_wait :
@@ -77,25 +99,26 @@ class Quoridor() :
         else :
             self.players_adjacent = False
             info = None
-        if details == True :
+        if return_details == True :
             return(info)
         else :
             return(None)
 
     def print_positions(self) :
-        print(f"{self.moving_player}: ({self.names[self.moving_player]}) has position {self.position()}")
-        print(f"{self.waiting_player}: ({self.names[self.waiting_player]}) has position {self.position(player='waiting')}")
+        print(f"{self.moving_player}: ({self.names_dict[self.moving_player]}) has position {self.position()}")
+        print(f"{self.waiting_player}: ({self.names_dict[self.waiting_player]}) has position {self.position(player='waiting')}")
 
     def options(self, position = self.position(), details = False) :
         '''returns the set of legal moves that can be made by the moving player on the current board
-        if details == True then it considers adjacent pawn complications'''
+        if details == True then it considers adjacent pawn complications
+        if position == [x,y] defined explicitly, returns possible moves for that hypothetical pawn'''
         x,y = position
         options = [direction for direction, boolean in self.board[y][x].items() if boolean == 1]
         if details == False :
             #no consideration of adjacent pawns requested
             return(options)
         else :
-            adjacent_check = self.check_if_adjacent(details=True)
+            adjacent_check = self.check_if_adjacent(return_details=True)
             if self.players_adjacent == True :
                 x_wait, y_wait = self.position('waiting')
                 options_wait = [direction for direction, boolean in self.board[y_wait][x_wait].items() if boolean == 1]
@@ -124,6 +147,7 @@ class Quoridor() :
         print(f"Your options are: {', '.join(options(details=True))}")
        
     def check_for_winner(self) :
+        '''checks to see if the moving player has won, returning True if so, False otherwise'''
         x, y = self.position()
         if self.moving_player == "Player 1" :
             winning_row = 8
@@ -131,11 +155,11 @@ class Quoridor() :
             winning_row = 0
         if y == winning_row :
             return(True)
-            print("Winner!!!!!!!")
         else :
             return(False)
 
-    def game_over() :
+    def game_over(self) :
+        '''here's what we do in the situation that a game is won'''
         print("Game over")
 
     def move(self, direction) :
@@ -160,7 +184,7 @@ class Quoridor() :
             
             self.current_positions[self.moving_player] = [y,x]
             if self.check_for_winner() == True :
-                print("game over!")
+                self.game_over()
             else :
                 pass
             self.check_if_adjacent()
@@ -171,48 +195,72 @@ class Quoridor() :
             print("This is not a legal move on the current board.")
             return(False)
 
-    def place_fences(self, changes, board, reverse=False) :
+    def place_fences(self, changes, reverse=False) :
+        '''given an encoded set of changes representing fence placement, the board, 
+        and a boolean parameter called 'reverse', either place or remove fences accordingly'''
+        #note: this is an internal function, so only to be used behind the scenes
         if reverse == False :
             boolean = 0
         else :
             boolean = 1
+        #boolean represents whether we want to turn 'ON' of 'OFF' the electric fences (1, 0 resp.)
         orientation = changes[0]
-        if orientation == True : 
+        #note: changes is a list of 0. orientation, 1-4: the squares that need to be changed
+        #order of squares given is bottom-left, top-left, top-right, bottom-right
+        if orientation == True :  #ie horizontal fence
             directions = ['U', 'D', 'D', 'U']
-        elif orientation == False :
+        elif orientation == False : #ie vertical fence
             directions = ['R', 'R', 'L', 'L']
 
         for points, direction in zip(changes[1:], directions) :
             x,y = points
-            board[y][x][direction] = boolean
-
+            self.board[y][x][direction] = boolean
     
-    def check_possible(self, board) :
-        #check for player_1 - winning row is 8
-        y_start, x_start = self.current_positions['Player 1']
-        y_1, x_1 = y_start, x_start
-        while y1 != 8 :
-            options = self.options([x1,y1], True)
-            if len(options) :
-        
-        
-        
-
-        #check for player_2
-        y2, x2 = self.current_positions['Player 2']
-
-        
-
-        
-        
-        
-                
+    def move_pos(self, pos, direction) :
+        '''this is used to help figure out if we're trapped: consider using it throughout the code
+        for further simplicity'''
+        x, y = pos
+        if direction == 'U' :
+            return([x, y+1])
+        elif direction == 'D' :
+            return([x, y-1])
+        elif direction == 'L' :
+            return([x-1, y])
+        elif direction == 'R' :
+            return([x+1, y])
 
 
-    
+    def is_trapped(self, player) :
+        start_temp = self.current_positions[player]
+        y, x = start_temp
+        if player == "Player 1" :
+            destination = [0,8]
+        elif player == "Player 2" :
+            destination = [0,0]
+        visited_cells = [[x,y]]
+        current_cells = [[x,y]]
+        while destination not in visited_cells and len(current_cells) > 0:
+            current_cells_temp = [cells for cells in current_cells]
+            for cell in current_cells :
+                x, y = cell
+                options = self.options(position = cell)
+                for direction in options :
+                    pos = self.move_pos(pos, direction)
+                    if pos in visited_cells :
+                        continue
+                    else :
+                        visited_cells.append(pos)
+                        current_cells_temp.append(pos)
+                current_cells_temp.remove(cell)
+            current_cells = current_cells_temp
+        if len(current_cells) == 0 :
+            return(True)
+        elif destination in visited_cells :
+            return(False)
+
     def fence(self, location) :
         #location comes in the form of 4 squares and a horizontal/vertical parameter
-        #for sake of ease we will represent this with the ardttom left square and hor=True or hor=False
+        #for sake of ease we will represent this with the botttom left square and hor=True or hor=False
         #so location will be a tuple
         #therefore it's necessary to note that the path we are blocking must not already be blocked
         #and it's not possible to criss cross the fences so we need to make sure this isn't a problem
@@ -248,16 +296,19 @@ class Quoridor() :
                 print("This is not a valid move as there are already fences here.")
                 return(False)
         changes = [orientation, [x1, y1], [x_up, y_up], [x_right, y_right], [x1+1, y1+1]]
-        self.place_fences(changes, self.board)
-        if check_possible(self.board) == True :
+        self.place_fences(changes)
+        #place fences (preliminary attempt)
+        #now it's necessary to check if a player has been 'trapped' (which is an illegal move)
+        if self.is_trapped("Player 1") or self.is_trapped("Player 2") :
+            self.place_fences(changes, reverse=True)
+            print("This is an illegal move as it fences one of the players in. Fences were not placed.")
+            return(False)
+            
+        else :
             self.no_of_moves += 1
-            self.fences[moving_player] += -1
+            self.fences_dict[self.moving_player] += -1
             self.swap_perspective()
             return(True)
-        else :
-            self.place_fences(changes, self.board, reverse=True)
-            print("This is an illegal move as it fences one of the players in.")
-            return(False)
 
     # def restart(self) :
 

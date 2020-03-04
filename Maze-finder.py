@@ -42,6 +42,9 @@ def move(pos, direction) :
         return([x+1, y])
 
 
+def is_trapped(player) :
+    starting_position = current_positions
+
 starting_position = [2,4]
 x, y = starting_position
 x1 = x

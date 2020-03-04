@@ -108,10 +108,12 @@ class Quoridor() :
         print(f"{self.moving_player}: ({self.names_dict[self.moving_player]}) has position {self.position()}")
         print(f"{self.waiting_player}: ({self.names_dict[self.waiting_player]}) has position {self.position(player='waiting')}")
 
-    def options(self, position = self.position(), details = False) :
+    def options(self, position = None, details = False) :
         '''returns the set of legal moves that can be made by the moving player on the current board
         if details == True then it considers adjacent pawn complications
         if position == [x,y] defined explicitly, returns possible moves for that hypothetical pawn'''
+        if position == None :
+            position = self.position()
         x,y = position
         options = [direction for direction, boolean in self.board[y][x].items() if boolean == 1]
         if details == False :
@@ -208,7 +210,7 @@ class Quoridor() :
         #note: changes is a list of 0. orientation, 1-4: the squares that need to be changed
         #order of squares given is bottom-left, top-left, top-right, bottom-right
         if orientation == True :  #ie horizontal fence
-            directions = ['U', 'D', 'D', 'U']
+            directions = ['U', 'D', 'U', 'D']
         elif orientation == False : #ie vertical fence
             directions = ['R', 'R', 'L', 'L']
 
@@ -216,21 +218,29 @@ class Quoridor() :
             x,y = points
             self.board[y][x][direction] = boolean
     
-    def move_pos(self, pos, direction) :
+    def move_positions(self, pos, direction) :
         '''this is used to help figure out if we're trapped: consider using it throughout the code
         for further simplicity'''
         x, y = pos
         if direction == 'U' :
-            return([x, y+1])
+            x = x
+            y = y+1
+            return([x, y])
         elif direction == 'D' :
-            return([x, y-1])
+            x = x
+            y = y-1
+            return([x, y])
         elif direction == 'L' :
-            return([x-1, y])
+            x = x-1
+            y = y
+            return([x, y])
         elif direction == 'R' :
-            return([x+1, y])
-
+            x = x+1
+            y = y
+            return([x, y])
 
     def is_trapped(self, player) :
+        
         start_temp = self.current_positions[player]
         y, x = start_temp
         if player == "Player 1" :
@@ -242,10 +252,9 @@ class Quoridor() :
         while destination not in visited_cells and len(current_cells) > 0:
             current_cells_temp = [cells for cells in current_cells]
             for cell in current_cells :
-                x, y = cell
                 options = self.options(position = cell)
                 for direction in options :
-                    pos = self.move_pos(pos, direction)
+                    pos = self.move_positions(cell, direction)
                     if pos in visited_cells :
                         continue
                     else :
@@ -314,9 +323,7 @@ class Quoridor() :
 
     # def report_a_problem(self) :
         
-
-
-        
-        
 game = Quoridor("Ash", "Emma")
-print("Hello")
+game.move('L')
+game.move('R')
+#etcera

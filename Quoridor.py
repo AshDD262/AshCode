@@ -292,7 +292,7 @@ class Quoridor() :
                 return(False)
         
         elif orientation == False : #ie vertical
-            if self.board[y1][x1]['R'] == 1 and self.board[y_up][y_up]['R'] == 1 :
+            if self.board[y1][x1]['R'] == 1 and self.board[y_up][x_up]['R'] == 1 :
                 #passed check that it's not already blocked off by fences
                 if self.board[y1][x1]['U'] == 0 and self.board[y_right][x_right]['U'] == 0 :
                     #failed the check here that crisscrosses
@@ -323,7 +323,6 @@ class Quoridor() :
 
     # def report_a_problem(self) :
         
-game = Quoridor("Ash", "Emile")
-game.move('L')
-game.move('R')
-#etcera
+game = Quoridor("Ash", "Mavri")
+game.fence(([4,7], True))
+game.fence(([4,7], False))

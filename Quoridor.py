@@ -244,12 +244,12 @@ class Quoridor() :
         start_temp = self.current_positions[player]
         y, x = start_temp
         if player == "Player 1" :
-            destination = [0,8]
+            destinations = [[a,8] for a in range(9)]
         elif player == "Player 2" :
-            destination = [0,0]
+            destinations = [[a,0] for a in range(9)]
         visited_cells = [[x,y]]
         current_cells = [[x,y]]
-        while destination not in visited_cells and len(current_cells) > 0:
+        while all([destination not in visited_cells for destination in destinations]) and len(current_cells) > 0:
             current_cells_temp = [cells for cells in current_cells]
             for cell in current_cells :
                 options = self.options(position = cell)
@@ -264,7 +264,7 @@ class Quoridor() :
             current_cells = current_cells_temp
         if len(current_cells) == 0 :
             return(True)
-        elif destination in visited_cells :
+        elif any([destination in visited_cells for destination in destinations]) :
             return(False)
 
     def fence(self, location) :
@@ -323,7 +323,7 @@ class Quoridor() :
 
     # def report_a_problem(self) :
         
-game = Quoridor("Ash", "Emma")
+game = Quoridor("Ash", "Emile")
 game.move('L')
 game.move('R')
 #etcera
